@@ -1,0 +1,76 @@
+{
+  "crawlerConfig": {
+    "default": {
+      "maxPages": 50,
+      "maxDepth": 2,
+      "timeout": 5000,
+      "userAgent": "Mozilla/5.0 (compatible; WebCrawler/1.0)"
+    },
+    "conservative": {
+      "maxPages": 20,
+      "maxDepth": 1,
+      "timeout": 10000,
+      "userAgent": "Mozilla/5.0 (compatible; WebCrawler/1.0)"
+    },
+    "aggressive": {
+      "maxPages": 500,
+      "maxDepth": 4,
+      "timeout": 3000,
+      "userAgent": "Mozilla/5.0 (compatible; WebCrawler/1.0)"
+    },
+    "test": {
+      "maxPages": 10,
+      "maxDepth": 1,
+      "timeout": 5000,
+      "userAgent": "Mozilla/5.0 (compatible; WebCrawler/1.0)"
+    }
+  },
+  "crawlDelays": {
+    "default": 500,
+    "aggressive": 300,
+    "polite": 1000,
+    "veryPolite": 2000
+  },
+  "mimeTypes": {
+    "allowed": [
+      "text/html",
+      "application/xhtml+xml"
+    ]
+  },
+  "urlPatterns": {
+    "ignore": [
+      "\\.jpg$",
+      "\\.png$",
+      "\\.gif$",
+      "\\.pdf$",
+      "\\.zip$",
+      "\\.exe$"
+    ]
+  },
+  "robots": {
+    "respectRobotsTxt": true,
+    "userAgent": "WebCrawler/1.0"
+  },
+  "features": {
+    "followRedirects": true,
+    "maxRedirects": 5,
+    "cacheRobotsTxt": true,
+    "retryOnError": true,
+    "maxRetries": 3
+  },
+  "indexing": {
+    "indexTitle": true,
+    "indexDescription": true,
+    "indexHeadings": true,
+    "indexImages": true,
+    "indexLinks": true,
+    "indexContent": true,
+    "minContentLength": 20,
+    "maxContentLength": 1000000
+  },
+  "export": {
+    "formats": ["json", "csv", "xml"],
+    "defaultFormat": "json",
+    "prettyPrint": true
+  }
+}
