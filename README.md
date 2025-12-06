@@ -23,13 +23,34 @@ A powerful, production-ready web crawler written in Node.js that mimics Google's
 
 ### Installation
 
-```bash
-# Navigate to project directory
-cd proxyy
+**Step 1: Open Terminal/Command Prompt**
+- On Windows: Press `Win + R`, type `cmd`, and press Enter
+- On Mac: Press `Cmd + Space`, type `terminal`, and press Enter
+- On Linux: Open your terminal application
 
-# Install dependencies
+**Step 2: Navigate to the Project Directory**
+```bash
+cd c:\Users\iwano\OneDrive\Desktop\proxyy
+```
+*Replace the path with your actual installation path if different*
+
+**Step 3: Install Dependencies**
+```bash
 npm install
 ```
+*This will download and install all required packages (axios, cheerio, robots-parser)*
+
+**Expected Output After Installation:**
+```
+added X packages in Ys
+```
+
+**Step 4: Verify Installation**
+```bash
+node -v
+npm -v
+```
+*Both should show version numbers if installed correctly*
 
 ### Basic Usage
 
