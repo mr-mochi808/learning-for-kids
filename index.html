@@ -411,19 +411,33 @@
         }
 
         // Start crawling simulation
-        function startCrawl() {
+        async function startCrawl() {
             const startUrl = document.getElementById('startUrl').value;
+            const maxPages = document.getElementById('maxPages').value;
+            const maxDepth = document.getElementById('maxDepth').value;
+            const timeout = document.getElementById('timeout').value;
             if (!startUrl) {
                 showStatus('❌ Please enter a start URL', 'error');
                 return;
             }
-
-            isCrawling = true;
-            showStatus('🚀 Crawler started - Note: This is a demo. Install dependencies to run real crawling.', 'info');
-            
-            // Simulate crawling
-            crawlData = [];
-            updateStats();
+            showStatus('🚀 Starting crawl...', 'info');
+            try {
+                const res = await fetch('http://localhost:3001/api/crawl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ startUrl, maxPages, maxDepth, timeout })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('✅ Crawl complete!', 'success');
+                    await fetchStats();
+                    await fetchResults();
+                } else {
+                    showStatus('❌ Crawl failed: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showStatus('❌ Error: ' + err.message, 'error');
+            }
         }
 
         function pauseCrawl() {
@@ -436,27 +450,29 @@
             crawlData = [];
             updateStats();
             showStatus('⛔ Crawling stopped', 'error');
+            // Optionally, you could add an API endpoint to cancel crawl
         }
 
         // Search functionality
-        function searchContent() {
+        async function searchContent() {
             const query = document.getElementById('searchQuery').value.trim();
             if (!query) {
                 showStatus('Please enter a search query', 'error');
                 return;
             }
-
             showStatus(`Searching for "${query}"...`, 'info');
-            // Simulate search
-            setTimeout(() => {
-                displayResults([
-                    {
-                        title: 'Example Result 1',
-                        url: 'https://example.com/page1',
-                        snippet: 'This is a sample search result snippet...'
-                    }
-                ]);
-            }, 500);
+            try {
+                const res = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                displayResults(data.results.map(r => ({
+                    title: r.title,
+                    url: r.url,
+                    snippet: r.description || ''
+                })));
+                showStatus(`✅ Found ${data.results.length} results`, 'success');
+            } catch (err) {
+                showStatus('❌ Error: ' + err.message, 'error');
+            }
         }
 
         // Display results
@@ -479,6 +495,31 @@
                 `;
                 resultsList.appendChild(li);
             });
+        }
+
+        // Fetch stats from backend
+        async function fetchStats() {
+            try {
+                const res = await fetch('http://localhost:3001/api/stats');
+                const data = await res.json();
+                if (data.stats) {
+                    document.getElementById('pagesCrawled').textContent = data.stats.pagesCrawled;
+                    document.getElementById('pagesIndexed').textContent = data.stats.pagesIndexed;
+                    document.getElementById('errorCount').textContent = data.stats.errors;
+                }
+            } catch {}
+        }
+
+        // Fetch results from backend
+        async function fetchResults() {
+            try {
+                const res = await fetch('http://localhost:3001/api/results');
+                const data = await res.json();
+                if (data.pages) {
+                    crawlData = data.pages;
+                    updateStats();
+                }
+            } catch {}
         }
 
         // Initial update
