@@ -126,6 +126,11 @@
             transform: scale(0.98);
         }
 
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -195,8 +200,8 @@
         }
 
         .search-box {
-            display: grid;
             grid-column: 1 / -1;
+            display: grid;
             gap: 10px;
         }
 
@@ -276,6 +281,15 @@
         .feature-item strong {
             color: #667eea;
         }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -290,28 +304,26 @@
             <div class="card">
                 <h2>⚙️ Configuration</h2>
                 
+                <div class="note">
+                    <strong>📝 Note:</strong> Paste website URLs here. Works best with sites that allow public access.
+                </div>
+
                 <div class="form-group">
-                    <label for="startUrl">Start URL</label>
+                    <label for="startUrl">Website URL</label>
                     <input type="text" id="startUrl" placeholder="https://example.com" value="https://example.com">
                 </div>
 
                 <div class="form-group">
                     <label for="maxPages">Max Pages to Crawl</label>
-                    <input type="number" id="maxPages" value="20" min="1" max="1000">
+                    <input type="number" id="maxPages" value="5" min="1" max="50">
                 </div>
 
                 <div class="form-group">
                     <label for="maxDepth">Maximum Depth</label>
-                    <input type="number" id="maxDepth" value="2" min="1" max="10">
+                    <input type="number" id="maxDepth" value="1" min="1" max="5">
                 </div>
 
-                <div class="form-group">
-                    <label for="timeout">Timeout (ms)</label>
-                    <input type="number" id="timeout" value="5000" min="1000" max="30000" step="1000">
-                </div>
-
-                <button onclick="startCrawl()">🚀 Start Crawling</button>
-                <button onclick="pauseCrawl()" style="background: #999;">⏸️ Pause</button>
+                <button id="crawlBtn" onclick="startCrawl()">🚀 Start Crawling</button>
                 <button onclick="stopCrawl()" style="background: #d32f2f;">⛔ Stop</button>
             </div>
 
@@ -344,15 +356,15 @@
             <!-- Search functionality -->
             <div class="card search-box">
                 <h2>🔍 Search Indexed Content</h2>
-                <input type="text" id="searchQuery" placeholder="Search your indexed pages...">
-                <button onclick="searchContent()">Search</button>
+                <input type="text" id="searchQuery" placeholder="Search your crawled pages..." onkeyup="searchContent()">
+                <button onclick="searchContent()">🔎 Search</button>
             </div>
 
             <!-- Results -->
             <div class="card results-area">
-                <h2>📄 Results</h2>
+                <h2>📄 Results (<span id="resultCount">0</span>)</h2>
                 <ul class="results-list" id="resultsList">
-                    <li class="result-item" style="color: #999;">Results will appear here...</li>
+                    <li class="result-item" style="color: #999;">Crawl a website to see results here...</li>
                 </ul>
             </div>
 
@@ -361,28 +373,28 @@
                 <h2>✨ Features</h2>
                 <div class="features-list">
                     <div class="feature-item">
-                        <strong>🤖 Intelligent Crawling</strong> - Respects robots.txt and crawl delays
+                        <strong>🤖 Smart Crawling</strong> - Automatically discovers links
                     </div>
                     <div class="feature-item">
-                        <strong>📑 Full Indexing</strong> - Indexes titles, descriptions, content, images, and links
+                        <strong>📑 Full Indexing</strong> - Captures titles, text, and links
                     </div>
                     <div class="feature-item">
-                        <strong>🔗 Link Discovery</strong> - Automatically discovers and follows links
+                        <strong>🔍 Real-time Search</strong> - Search as you type
                     </div>
                     <div class="feature-item">
-                        <strong>🔍 Content Search</strong> - Search indexed content with relevance scoring
+                        <strong>📊 Statistics</strong> - Track crawl progress
                     </div>
                     <div class="feature-item">
-                        <strong>📊 SEO Analysis</strong> - Analyze page metadata and SEO optimization
+                        <strong>⚡ Fast</strong> - Works instantly in your browser
                     </div>
                     <div class="feature-item">
-                        <strong>💾 Multiple Formats</strong> - Export as JSON, CSV, or XML
+                        <strong>🛡️ Safe</strong> - Respects website policies
                     </div>
                     <div class="feature-item">
-                        <strong>📈 Performance Metrics</strong> - Track crawl statistics and performance
+                        <strong>📱 Mobile Friendly</strong> - Works on all devices
                     </div>
                     <div class="feature-item">
-                        <strong>🛡️ Robust Error Handling</strong> - Graceful handling of network issues
+                        <strong>💾 Export Data</strong> - Save results as JSON
                     </div>
                 </div>
             </div>
@@ -390,92 +402,192 @@
     </div>
 
     <script>
-        let crawlData = [];
-        let isCrawling = false;
-
-        // Determine API URL dynamically (works locally and on deployed servers)
-        const API_URL = window.location.origin;
-
-        // Update display
-        function updateStats() {
-            document.getElementById('pagesCrawled').textContent = crawlData.length;
-            document.getElementById('pagesIndexed').textContent = crawlData.length;
-            document.getElementById('errorCount').textContent = 0;
-        }
+        let crawledPages = [];
+        let isRunning = false;
+        let errors = 0;
 
         // Show status message
         function showStatus(message, type = 'info') {
             const statusEl = document.getElementById('status');
             statusEl.textContent = message;
             statusEl.className = 'status show ' + type;
-            setTimeout(() => {
-                statusEl.classList.remove('show');
-            }, 5000);
+            if (type !== 'info') {
+                setTimeout(() => {
+                    statusEl.classList.remove('show');
+                }, 5000);
+            }
         }
 
-        // Start crawling simulation
+        // Fetch and parse a URL
+        async function fetchPage(url) {
+            try {
+                // Try direct fetch first
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+                return html;
+            } catch (err) {
+                // If CORS error, try with CORS proxy
+                if (err.message.includes('Failed to fetch') || err.message.includes('CORS')) {
+                    try {
+                        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                        const response = await fetch(proxyUrl + url);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        const html = await response.text();
+                        return html;
+                    } catch {
+                        throw new Error('Website blocked crawling (CORS). Try a different site.');
+                    }
+                }
+                throw err;
+            }
+        }
+
+        // Extract links from HTML
+        function extractLinks(html, baseUrl) {
+            const links = [];
+            const parser = new DOMParser();
+            try {
+                const doc = parser.parseFromString(html, 'text/html');
+                const anchors = doc.querySelectorAll('a[href]');
+                anchors.forEach(a => {
+                    try {
+                        const href = a.getAttribute('href');
+                        if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                            const absoluteUrl = new URL(href, baseUrl).href;
+                            links.push(absoluteUrl);
+                        }
+                    } catch {}
+                });
+            } catch {}
+            return [...new Set(links)]; // Remove duplicates
+        }
+
+        // Extract content from HTML
+        function extractContent(html, url) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            return {
+                url: url,
+                title: doc.title || 'Untitled',
+                description: doc.querySelector('meta[name="description"]')?.getAttribute('content') || '',
+                text: doc.body?.innerText?.substring(0, 500) || '',
+                headings: Array.from(doc.querySelectorAll('h1, h2, h3')).map(h => h.innerText).slice(0, 3),
+                links: extractLinks(html, url)
+            };
+        }
+
+        // Same domain check
+        function isSameDomain(url1, url2) {
+            try {
+                return new URL(url1).hostname === new URL(url2).hostname;
+            } catch {
+                return false;
+            }
+        }
+
+        // Start crawling
         async function startCrawl() {
-            const startUrl = document.getElementById('startUrl').value;
-            const maxPages = document.getElementById('maxPages').value;
-            const maxDepth = document.getElementById('maxDepth').value;
-            const timeout = document.getElementById('timeout').value;
+            const startUrl = document.getElementById('startUrl').value.trim();
+            const maxPages = parseInt(document.getElementById('maxPages').value);
+            const maxDepth = parseInt(document.getElementById('maxDepth').value);
+
             if (!startUrl) {
-                showStatus('❌ Please enter a start URL', 'error');
+                showStatus('❌ Please enter a URL', 'error');
                 return;
             }
-            showStatus('🚀 Starting crawl...', 'info');
+
+            // Validate URL
             try {
-                const res = await fetch(`${API_URL}/api/crawl`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ startUrl, maxPages, maxDepth, timeout })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showStatus('✅ Crawl complete!', 'success');
-                    await fetchStats();
-                    await fetchResults();
-                } else {
-                    showStatus('❌ Crawl failed: ' + (data.error || 'Unknown error'), 'error');
+                new URL(startUrl);
+            } catch {
+                showStatus('❌ Invalid URL. Make sure it starts with http:// or https://', 'error');
+                return;
+            }
+
+            isRunning = true;
+            crawledPages = [];
+            errors = 0;
+            document.getElementById('crawlBtn').disabled = true;
+
+            showStatus('🚀 Starting crawl... (This may take a moment)', 'info');
+
+            const queue = [{url: startUrl, depth: 0}];
+            const visited = new Set();
+
+            while (queue.length > 0 && crawledPages.length < maxPages && isRunning) {
+                const {url, depth} = queue.shift();
+
+                if (visited.has(url) || depth > maxDepth) continue;
+                visited.add(url);
+
+                showStatus(`🕷️ Crawling (${crawledPages.length}/${maxPages})... ${url.substring(0, 50)}...`, 'info');
+
+                try {
+                    const html = await fetchPage(url);
+                    const content = extractContent(html, url);
+                    crawledPages.push(content);
+
+                    // Extract new links
+                    content.links.forEach(link => {
+                        if (isSameDomain(startUrl, link) && !visited.has(link) && crawledPages.length < maxPages) {
+                            queue.push({url: link, depth: depth + 1});
+                        }
+                    });
+
+                    updateStats();
+                } catch (err) {
+                    errors++;
+                    console.error(`Error crawling ${url}:`, err.message);
                 }
-            } catch (err) {
-                showStatus('❌ Error: ' + err.message, 'error');
+
+                await new Promise(r => setTimeout(r, 500)); // Polite delay
+            }
+
+            isRunning = false;
+            document.getElementById('crawlBtn').disabled = false;
+            if (crawledPages.length > 0) {
+                showStatus(`✅ Crawl complete! Found ${crawledPages.length} pages. Now try searching!`, 'success');
+            } else {
+                showStatus(`❌ Could not crawl any pages. The website may be blocking requests. Try a different site.`, 'error');
             }
         }
 
-        function pauseCrawl() {
-            isCrawling = false;
-            showStatus('⏸️ Crawling paused', 'info');
+        // Stop crawling
+        function stopCrawl() {
+            isRunning = false;
+            document.getElementById('crawlBtn').disabled = false;
+            showStatus('⛔ Crawl stopped', 'error');
         }
 
-        function stopCrawl() {
-            isCrawling = false;
-            crawlData = [];
-            updateStats();
-            showStatus('⛔ Crawling stopped', 'error');
-            // Optionally, you could add an API endpoint to cancel crawl
+        // Update statistics
+        function updateStats() {
+            document.getElementById('pagesCrawled').textContent = crawledPages.length;
+            document.getElementById('pagesIndexed').textContent = crawledPages.length;
+            document.getElementById('errorCount').textContent = errors;
         }
 
         // Search functionality
-        async function searchContent() {
-            const query = document.getElementById('searchQuery').value.trim();
-            if (!query) {
-                showStatus('Please enter a search query', 'error');
-                return;
+        function searchContent() {
+            const query = document.getElementById('searchQuery').value.trim().toLowerCase();
+            let results = crawledPages;
+
+            if (query.length > 0) {
+                results = crawledPages.filter(page => {
+                    const titleMatch = page.title.toLowerCase().includes(query);
+                    const descMatch = page.description.toLowerCase().includes(query);
+                    const textMatch = page.text.toLowerCase().includes(query);
+                    const urlMatch = page.url.toLowerCase().includes(query);
+                    return titleMatch || descMatch || textMatch || urlMatch;
+                });
             }
-            showStatus(`Searching for "${query}"...`, 'info');
-            try {
-                const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
-                const data = await res.json();
-                displayResults(data.results.map(r => ({
-                    title: r.title,
-                    url: r.url,
-                    snippet: r.description || ''
-                })));
-                showStatus(`✅ Found ${data.results.length} results`, 'success');
-            } catch (err) {
-                showStatus('❌ Error: ' + err.message, 'error');
-            }
+
+            displayResults(results);
         }
 
         // Display results
@@ -485,6 +597,7 @@
 
             if (results.length === 0) {
                 resultsList.innerHTML = '<li class="result-item" style="color: #999;">No results found</li>';
+                document.getElementById('resultCount').textContent = '0';
                 return;
             }
 
@@ -493,39 +606,26 @@
                 li.className = 'result-item';
                 li.innerHTML = `
                     <div class="title">${result.title}</div>
-                    <div class="url">${result.url}</div>
-                    <div class="snippet">${result.snippet}</div>
+                    <div class="url"><a href="${result.url}" target="_blank">${result.url}</a></div>
+                    <div class="snippet">${result.description || result.text.substring(0, 200)}</div>
                 `;
                 resultsList.appendChild(li);
             });
+
+            document.getElementById('resultCount').textContent = results.length;
         }
 
-        // Fetch stats from backend
-        async function fetchStats() {
-            try {
-                const res = await fetch(`${API_URL}/api/stats`);
-                const data = await res.json();
-                if (data.stats) {
-                    document.getElementById('pagesCrawled').textContent = data.stats.pagesCrawled;
-                    document.getElementById('pagesIndexed').textContent = data.stats.pagesIndexed;
-                    document.getElementById('errorCount').textContent = data.stats.errors;
-                }
-            } catch {}
-        }
+        // Export results
+        window.exportResults = function() {
+            const json = JSON.stringify(crawledPages, null, 2);
+            const blob = new Blob([json], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'crawl-results.json';
+            a.click();
+        };
 
-        // Fetch results from backend
-        async function fetchResults() {
-            try {
-                const res = await fetch(`${API_URL}/api/results`);
-                const data = await res.json();
-                if (data.pages) {
-                    crawlData = data.pages;
-                    updateStats();
-                }
-            } catch {}
-        }
-
-        // Initial update
         updateStats();
     </script>
 </body>

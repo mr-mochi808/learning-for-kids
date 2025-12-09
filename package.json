@@ -2,17 +2,23 @@
   "name": "web-crawler",
   "version": "1.0.0",
   "description": "A web crawler similar to Google's crawling engine",
-  "main": "crawler.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node crawler.js",
+    "start": "node server.js",
+    "dev": "node crawler.js",
     "test": "node test.js"
   },
   "keywords": ["crawler", "scraper", "web"],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "axios": "^1.6.0",
     "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "robots-parser": "^2.0.1",
     "url": "^0.11.0"
   }

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const WebCrawler = require('./crawler');
 const fs = require('fs');
 
@@ -7,8 +8,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (index.html, etc.)
+app.use(express.static(path.join(__dirname)));
+
 let crawlerInstance = null;
 let lastResults = [];
+
+// Serve index.html on root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Start a crawl
 app.post('/api/crawl', async (req, res) => {
@@ -51,5 +60,6 @@ app.get('/api/results', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Web Crawler API server running on port ${PORT}`);
+  console.log(`🕷️ Web Crawler API server running on http://localhost:${PORT}`);
+  console.log(`Open your browser and go to http://localhost:${PORT}`);
 });
