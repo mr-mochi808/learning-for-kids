@@ -241,6 +241,24 @@
             font-size: 12px;
             font-weight: bold;
             color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header button {
+            padding: 5px 10px;
+            font-size: 11px;
+            margin: 0;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .preview-header button:hover {
+            opacity: 0.9;
         }
 
         .preview-content {
@@ -253,6 +271,33 @@
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            background: white;
+        }
+
+        .fullscreen-mode .preview-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            z-index: 10001;
+        }
+
+        .fullscreen-mode .preview-content {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         .no-preview {
@@ -276,10 +321,83 @@
                 min-height: 400px;
             }
         }
+
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .login-box h1 {
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .login-box button:hover {
+            opacity: 0.9;
+        }
+
+        .login-error {
+            color: #d32f2f;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .login-error.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div class="main-container">
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h1>🕷️</h1>
+            <div id="loginError" class="login-error"></div>
+            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter') login()">
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <div class="main-container" style="display: none;" id="mainContainer">
         <!-- LEFT PANEL: CONTROLS AND RESULTS -->
         <div class="panel left-panel">
             <h1>🕷️ Web Crawler</h1>
@@ -330,8 +448,24 @@
     </div>
 
     <script>
+        const CORRECT_PASSWORD = 'Ved287fef';
         let allPages = [];
         let selectedIndex = -1;
+
+        function login() {
+            const password = document.getElementById('passwordInput').value;
+            const errorEl = document.getElementById('loginError');
+            
+            if (password === CORRECT_PASSWORD) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'grid';
+            } else {
+                errorEl.textContent = '❌ Incorrect password';
+                errorEl.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                setTimeout(() => errorEl.classList.remove('show'), 3000);
+            }
+        }
 
         function showStatus(msg, type = 'info') {
             const el = document.getElementById('status');
@@ -485,22 +619,13 @@
             const page = allPages[index];
             const previewDiv = document.getElementById('preview');
             
-            // Create sanitized HTML content
-            let html = page.html;
-            // Remove scripts and styles that could interfere
-            html = html.replace(/<script[^>]*>.*?<\/script>/gi, '');
-            
-            // Set base URL for relative links
-            html = `
-                <base href="${page.url}">
-                ${html}
-            `;
-
-            // Create iframe content
             previewDiv.innerHTML = `
-                <div class="preview-header">📄 ${page.title}</div>
+                <div class="preview-header">
+                    <span>📄 ${page.title}</span>
+                    <button onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                </div>
                 <div class="preview-content">
-                    <iframe srcdoc="${escapeHtml(html)}" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+                    <iframe src="${page.url}" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
                 </div>
             `;
 
@@ -510,15 +635,18 @@
             });
         }
 
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+        function toggleFullscreen() {
+            const preview = document.getElementById('preview');
+            const container = document.querySelector('.main-container');
+            
+            if (preview.classList.contains('fullscreen-mode')) {
+                preview.classList.remove('fullscreen-mode');
+                container.style.display = 'grid';
+            } else {
+                preview.classList.add('fullscreen-mode');
+                container.style.display = 'none';
+                document.body.appendChild(preview);
+            }
         }
 
         function filterResults() {
