@@ -481,8 +481,10 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'grid';
                 if (!isOnline) {
-                    showStatus('⚠️ You are offline - using cached pages', 'info');
-                    setTimeout(hideStatus, 3000);
+                    setTimeout(() => {
+                        showStatus('⚠️ You are offline - using cached pages', 'info');
+                        setTimeout(hideStatus, 3000);
+                    }, 100);
                 }
             } else {
                 errorEl.textContent = '❌ Incorrect password';
