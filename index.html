@@ -417,6 +417,13 @@
 
             <button onclick="crawlSite()" style="width: 100%;">🚀 Start Crawling</button>
 
+            <div class="button-group">
+                <button onclick="downloadForOffline()">💾 Download for Offline</button>
+                <button onclick="exportSiteZip()" style="background: #388e3c;">⬇️ Export Site</button>
+            </div>
+
+            <button onclick="clearCache()" style="width: 100%; background: #999; margin-top: 5px;">🗑️ Clear Cache</button>
+
             <div class="stats">
                 <div class="stat">
                     <div class="stat-value" id="crawledCount">0</div>
@@ -447,10 +454,24 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         const CORRECT_PASSWORD = 'Ved287fef';
         let allPages = [];
         let selectedIndex = -1;
+        let isOnline = navigator.onLine;
+
+        // Listen for online/offline changes
+        window.addEventListener('online', () => {
+            isOnline = true;
+            showStatus('✅ Back online!', 'success');
+            setTimeout(hideStatus, 2000);
+        });
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            showStatus('⚠️ You are offline - using cached pages', 'info');
+            setTimeout(hideStatus, 3000);
+        });
 
         function login() {
             const password = document.getElementById('passwordInput').value;
@@ -459,6 +480,10 @@
             if (password === CORRECT_PASSWORD) {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContainer').style.display = 'grid';
+                if (!isOnline) {
+                    showStatus('⚠️ You are offline - using cached pages', 'info');
+                    setTimeout(hideStatus, 3000);
+                }
             } else {
                 errorEl.textContent = '❌ Incorrect password';
                 errorEl.classList.add('show');
@@ -486,23 +511,138 @@
                     }
                 });
                 if (response.ok) {
-                    return await response.text();
+                    const html = await response.text();
+                    // Cache the page
+                    cachePageOffline(url, html);
+                    return html;
                 }
             } catch (e) {
                 console.log('Direct fetch failed, trying proxy...');
             }
 
-            try {
-                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-                const response = await fetch(proxyUrl);
-                if (response.ok) {
-                    return await response.text();
+            // If online, try proxy
+            if (isOnline) {
+                try {
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                    const response = await fetch(proxyUrl);
+                    if (response.ok) {
+                        const html = await response.text();
+                        cachePageOffline(url, html);
+                        return html;
+                    }
+                } catch (e) {
+                    console.log('Proxy failed');
                 }
-            } catch (e) {
-                console.log('Proxy failed');
             }
 
-            throw new Error('Could not fetch URL');
+            // Try to get from cache if offline
+            const cached = getCachedPage(url);
+            if (cached) {
+                console.log('Using cached version of:', url);
+                return cached;
+            }
+
+            throw new Error('Could not fetch URL - offline and no cache available');
+        }
+
+        function cachePageOffline(url, html) {
+            try {
+                const cache = JSON.parse(localStorage.getItem('crawlerCache')) || {};
+                cache[url] = {
+                    html: html,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('crawlerCache', JSON.stringify(cache));
+            } catch (e) {
+                console.log('Could not cache page:', e);
+            }
+        }
+
+        function getCachedPage(url) {
+            try {
+                const cache = JSON.parse(localStorage.getItem('crawlerCache')) || {};
+                return cache[url]?.html || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function clearCache() {
+            try {
+                localStorage.removeItem('crawlerCache');
+                showStatus('✅ Cache cleared', 'success');
+                setTimeout(hideStatus, 2000);
+            } catch (e) {
+                console.log('Could not clear cache:', e);
+            }
+        }
+
+        async function downloadForOffline() {
+            const url = document.getElementById('url').value.trim();
+            const maxPages = parseInt(document.getElementById('pages').value);
+
+            if (!url) {
+                showStatus('❌ Please enter a URL', 'error');
+                return;
+            }
+
+            if (!isOnline) {
+                showStatus('❌ You must be online to download for offline use', 'error');
+                return;
+            }
+
+            try {
+                new URL(url);
+            } catch {
+                showStatus('❌ Invalid URL format', 'error');
+                return;
+            }
+
+            showStatus('💾 Downloading for offline...', 'info');
+            let button = event.target;
+            button.disabled = true;
+
+            const visited = new Set();
+            const queue = [url];
+            let downloaded = 0;
+
+            while (queue.length > 0 && downloaded < maxPages) {
+                const currentUrl = queue.shift();
+                
+                if (visited.has(currentUrl)) continue;
+                visited.add(currentUrl);
+
+                try {
+                    showStatus(`💾 Downloading page ${downloaded + 1}/${maxPages}...`, 'info');
+
+                    const html = await fetchWithProxy(currentUrl);
+                    cachePageOffline(currentUrl, html);
+                    downloaded++;
+
+                    const linkRegex = /href=["']([^"']+)["']/gi;
+                    let match;
+                    while ((match = linkRegex.exec(html)) && queue.length < maxPages * 2) {
+                        let link = match[1];
+                        try {
+                            link = new URL(link, currentUrl).href;
+                            const linkDomain = new URL(link).hostname;
+                            const baseDomain = new URL(url).hostname;
+                            if (linkDomain === baseDomain && !visited.has(link)) {
+                                queue.push(link);
+                            }
+                        } catch {}
+                    }
+
+                } catch (err) {
+                    console.error('Error downloading:', err);
+                }
+
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            button.disabled = false;
+            showStatus(`✅ Downloaded ${downloaded} pages for offline use!`, 'success');
+            setTimeout(hideStatus, 5000);
         }
 
         async function crawlSite() {
@@ -521,7 +661,11 @@
                 return;
             }
 
-            showStatus('🕷️ Crawling website...', 'info');
+            if (!isOnline) {
+                showStatus('⚠️ Offline mode - loading cached results', 'info');
+            } else {
+                showStatus('🕷️ Crawling website...', 'info');
+            }
             
             allPages = [];
             selectedIndex = -1;
@@ -539,7 +683,11 @@
                 visited.add(currentUrl);
 
                 try {
-                    showStatus(`🕷️ Crawling page ${crawled + 1}/${maxPages}...`, 'info');
+                    if (isOnline) {
+                        showStatus(`🕷️ Crawling page ${crawled + 1}/${maxPages}...`, 'info');
+                    } else {
+                        showStatus(`⚠️ Offline - Page ${crawled + 1}/${maxPages} (cached)...`, 'info');
+                    }
 
                     const html = await fetchWithProxy(currentUrl);
                     
@@ -584,7 +732,8 @@
 
             button.disabled = false;
             displayResults(allPages);
-            showStatus(`✅ Found ${allPages.length} pages! Click to preview.`, 'success');
+            const mode = isOnline ? '✅ Found' : '⚠️ Loaded (offline)';
+            showStatus(`${mode} ${allPages.length} pages! Click to preview.`, 'success');
             setTimeout(hideStatus, 5000);
         }
 
@@ -664,6 +813,93 @@
             );
 
             displayResults(filtered);
+        }
+
+        async function exportSiteZip() {
+            if (allPages.length === 0) {
+                showStatus('❌ No pages to export. Crawl a site first!', 'error');
+                return;
+            }
+
+            showStatus('📦 Creating offline archive...', 'info');
+            let button = event.target;
+            button.disabled = true;
+
+            try {
+                const zip = new JSZip();
+                
+                // Create index.html for offline navigation
+                let indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Site Archive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #667eea; margin-bottom: 20px; }
+        .pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .page-card { background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; cursor: pointer; text-decoration: none; color: inherit; transition: all 0.2s; }
+        .page-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .page-title { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+        .page-url { font-size: 12px; color: #999; word-break: break-all; margin-bottom: 10px; }
+        .page-text { font-size: 13px; color: #666; line-height: 1.4; }
+        .offline-badge { display: inline-block; background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕷️ Offline Site Archive</h1>
+        <div class="offline-badge">✅ Offline - No internet required</div>
+        <div class="pages-grid" id="pagesList"></div>
+    </div>
+    <script>
+        const pages = ${JSON.stringify(allPages)};
+        const list = document.getElementById('pagesList');
+        pages.forEach((page, i) => {
+            const card = document.createElement('a');
+            card.href = 'page-' + i + '.html';
+            card.className = 'page-card';
+            card.innerHTML = \`
+                <div class="page-title">\${page.title}</div>
+                <div class="page-url">\${page.url}</div>
+                <div class="page-text">\${page.text.substring(0, 100)}...</div>
+            \`;
+            list.appendChild(card);
+        });
+    </script>
+</body>
+</html>`;
+                
+                zip.file('index.html', indexHtml);
+                
+                // Add each page
+                for (let i = 0; i < allPages.length; i++) {
+                    const page = allPages[i];
+                    zip.file(`page-${i}.html`, page.html);
+                }
+
+                // Generate ZIP and download
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `offline-site-${Date.now()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                button.disabled = false;
+                showStatus(`✅ Exported ${allPages.length} pages as ZIP!`, 'success');
+                setTimeout(hideStatus, 5000);
+            } catch (err) {
+                console.error('Export error:', err);
+                button.disabled = false;
+                showStatus('❌ Export failed - check console', 'error');
+            }
         }
     </script>
 </body>
