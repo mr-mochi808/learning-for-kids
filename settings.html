@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="settings.css">
+    <title>Settings</title>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <a href="main.html"><img src="images/home.png" alt="Home"></a>
+        <a href="games.html"><img src="images/games.png" alt="Games"></a>
+        <a href="settings.html"><img src="images/settings.png" alt="Settings"></a>
+    </div>
+
+    <div class="wrapper">
+        <div class="settings-card">
+            <h1 class="title">Settings</h1>
+
+            <div class="setting-item">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select">
+                    <option value="rose">Rose Pine Moon</option>
+                    <option value="nord">Nord</option>
+                    <option value="default">Default</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="show-icons" checked>
+                    Show Topbar Icons
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="animations" checked>
+                    Enable Animations
+                </label>
+            </div>
+
+            <button class="cta" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+
+    <script>
+        function saveSettings() {
+            alert("Settings saved!");
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,124 @@
+/* --- Rose Pine Moon Palette --- */
+:root {
+    --base: #232136;
+    --surface: #2a273f;
+    --overlay: #393552;
+
+    --text: #e0def4;
+    --subtle: #6e6a86;
+
+    --love: #eb6f92; /* Accent */
+    --accent-text: #9ccfd8;
+}
+
+/* --- Body Reset --- */
+body {
+    margin: 0;
+    padding-top: 90px; /* for topbar */
+    background: var(--base);
+    font-family: "JetBrains Mono", monospace;
+    color: var(--text);
+}
+
+/* --- Topbar --- */
+.topbar {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(57, 53, 82, 0.8);
+    padding: 10px 25px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    /* Removed animation & opacity so it shows immediately */
+}
+
+
+.topbar img {
+    width: 34px;
+    height: 34px;
+    opacity: 0.85;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+}
+
+.topbar img:hover {
+    transform: scale(1.15);
+    opacity: 1;
+}
+
+/* --- Wrapper --- */
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 90px);
+    width: 100%;
+    padding: 20px;
+}
+
+/* --- Settings Card --- */
+.settings-card {
+    background: var(--surface);
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    opacity: 1;
+}
+
+/* Title */
+.settings-card .title {
+    margin: 0;
+    font-size: 2.5rem;
+    color: var(--love);
+}
+
+/* Individual setting items */
+.settings-card .setting-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 1rem;
+    color: var(--accent-text);
+}
+
+/* Inputs & select styling */
+.settings-card select,
+.settings-card input[type="checkbox"] {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--overlay);
+    background: var(--base);
+    color: var(--text);
+    cursor: pointer;
+}
+
+/* Save button */
+.settings-card .cta {
+    background: var(--love);
+    color: var(--base);
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.settings-card .cta:hover {
+    background: #f091a8;
+    transform: translateY(-6px);
+}

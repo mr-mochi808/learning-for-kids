@@ -1,0 +1,686 @@
+/* Rose Pine Moon palette */
+:root {
+  --base: #232136;
+  --surface: #2a273f;
+  --overlay: #393552;
+
+  --text: #e0def4;
+  --subtle: #6e6a86;
+
+  --love: #eb6f92; /* Accent */
+  --accent-text: #9ccfd8;
+}
+
+body {
+  margin: 0;
+  padding-top: 90px; /* keep top spacing for fixed navbar */
+  padding-left: 0;
+  padding-right: 0;
+  background: var(--base);
+  font-family: "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+/* Glow container */
+.glow-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: -1;
+}
+
+/* Soft Rose Pine glows */
+.glow {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    filter: blur(95px);
+    opacity: 0.16;
+    animation: drift 30s ease-in-out infinite alternate;
+}
+
+/* Colors */
+.glow1 { background: #eb6f92; top: -70px; left: -40px; }
+.glow2 { background: #9ccfd8; bottom: -110px; right: -60px; animation-delay: 10s; }
+.glow3 { background: #c4a7e7; top: 45%; left: 55%; transform: translate(-50%, -50%); animation-delay: 20s; }
+
+/* Subtle drifting animation across screen */
+@keyframes drift {
+    0%   { transform: translate(0px, 0px) scale(1); }
+    25%  { transform: translate(20px, -15px) scale(1.02); }
+    50%  { transform: translate(-15px, 25px) scale(1.03); }
+    75%  { transform: translate(10px, -20px) scale(1.01); }
+    100% { transform: translate(-20px, 10px) scale(1); }
+}
+
+
+/* Fade */
+.fade {
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out forwards;
+}
+
+/* Make sure fixed elements with fade are visible */
+.fade.fixed {
+  position: fixed;
+  /* keep it fixed */
+  z-index: 9999;
+  /* stay on top */
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Center only the main wrapper, not everything */
+.wrapper-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0; /* optional small top/bottom spacing */
+}
+
+
+/* Main container (single visual box) */
+.wrapper {
+  display: flex;
+  width: 80%;
+  max-width: 1100px;
+  height: 65vh;
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(0,0,0,0.35);
+  opacity: 0;
+}
+
+/* Fade-in animation */
+.fade-in {
+  animation: fadeIn 1.8s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Left side (bigger) */
+.left {
+  flex: 1.4;
+  background: var(--overlay);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  padding: 30px;
+}
+
+/* Right side */
+.right {
+  flex: 1;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* Logo */
+.logo {
+  width: 140px;
+  height: auto;
+  filter: drop-shadow(0 0 8px rgba(0,0,0,0.45));
+}
+
+/* Title */
+.title {
+  margin: 0;
+  font-size: 3rem;
+  letter-spacing: 4px;
+  color: var(--love);
+  text-align: center;
+}
+
+/* Boot Button */
+.small-btn {
+  background: var(--love);
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  color: var(--base);
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.small-btn:hover {
+  background: #f091a8;
+  transform: translateY(-2px);
+}
+
+.random-game-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    padding: 5px;
+}
+
+.random-game-btn:hover {
+    transform: translateY(-2px) scale(1.02); /* subtle lift + scale like small-btn */
+} 
+
+/* Text under the button */
+.random-game-text {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text);
+    margin-top: -5px;
+    text-align: center;
+    transition: color 0.2s ease;
+    color: #d34f4a;;
+}
+
+.random-game-btn:hover .random-game-text {
+    color: var(--love); /* rose accent on hover */
+}
+
+
+
+/* Right-side text */
+.info-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--accent-text);
+  max-width: 85%;
+}
+
+.jetbrains-font-thin{
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.jetbrains-font{
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+      text-decoration: none;
+
+}
+
+.jetbrain-font-bold{
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.topbar {
+  position: fixed;
+  top: 15px; /* slight spacing from top */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgb(57, 53, 82, 0.8); /* semi-transparent dark background */
+  padding: 10px 25px; 
+  border-radius: 40px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px; /* spacing between icons */
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* icons */
+/* fancy, slowed-down icon hover */
+.topbar img {
+  width: 34px;
+  height: 34px;
+  opacity: 0.85;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease,
+    filter 0.45s ease;
+}
+
+.topbar img:hover {
+  transform: translateY(-5px) scale(1.22);
+  opacity: 1;
+  filter: drop-shadow(0 0 8px #eb6f9273); /* soft rose glow */
+}
+
+
+/* Prevent content from going under navbar */
+body {
+  padding-top: 90px;
+}
+
+
+.topbar img:hover {
+  transform: scale(1.15);
+}
+
+
+.sb-icon {
+  width: 35px;
+  height: 35px;
+  display: inline-block;  /* dynamic accent color */
+  -webkit-mask: center/contain no-repeat;
+  mask: center/contain no-repeat;
+  transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  margin-bottom: 15px;
+}
+
+/* Grid*/
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  /* dynamic 4-column layout */
+  gap: 1.5rem;
+  padding: 2rem;
+  justify-items: center;
+  background-color: var(--surface);
+  margin: 20px;
+  border-radius: 50px;
+  /* same as sidebar width */
+  transition: margin-left 4s ease;
+  /* optional smooth shift */
+  /* Nord dark background */
+}
+
+/* Game Card Hover — Subtle Zoom + Slight Lift */
+.game {
+  position: relative;
+  border-radius: 30px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4c566a, #5e81ac);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  width: 100%;
+  aspect-ratio: 15 / 8;
+  max-width: 400px;
+  transition:
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+.game input[type="image"] {
+  all: unset;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 30px;
+  transition:
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+/* Hover — subtle + premium */
+.game:hover {
+  transform: translateY(-3px) scale(1.015);  /* slight lift + minimal zoom */
+  filter: brightness(1.04);
+}
+
+.game:hover input[type="image"] {
+  transform: scale(1.02);  /* tiny zoom */
+  filter: brightness(1.06) saturate(1.02);
+}
+
+/* No glow */
+.game::after {
+  display: none;
+}
+
+
+.game:hover::after {
+  opacity: 1;
+  animation: subtleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes subtleGlow {
+  from {
+    opacity: 0.3;
+  }
+
+  to {
+    opacity: 0.6;
+  }
+}
+
+.game {
+  opacity: 0;
+  transform: translateY(20px);
+  /* start slightly lower */
+  animation: fadeUp 0.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------- Search Bar Styles -------------------- */
+.games-search-container {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.games-search-input {
+    width: 300px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 25px;
+    border: 2px solid #9ccfd8; /* Rose Pine accent */
+    outline: none;
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.05);
+    color: #e0def4;
+}
+
+.games-search-input::placeholder {
+    color: #6e6a86;
+    transition: all 0.3s ease;
+}
+
+.games-search-input:focus {
+    border-color: #eb6f92; /* Rose accent */
+    box-shadow: 0 0 20px rgba(235,111,146,0.4);
+    transform: scale(1.02);
+}
+
+/* -------------------- Game Name Captions -------------------- */
+.game-name {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: #e0def4;
+    transition: all 0.2s ease;
+}
+
+.highlight {
+    color: #eb6f92; /* Highlight color */
+    font-weight: 700;
+}
+
+
+
+.games-grid .game:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.games-grid .game:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.games-grid .game:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.games-grid .game:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.games-grid .game:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.games-grid .game:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.games-grid .game:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+.games-grid .game:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+.games-grid .game:nth-child(9) {
+  animation-delay: 0.45s;
+}
+
+.games-grid .game:nth-child(10) {
+  animation-delay: 0.55s;
+}
+
+.games-grid .game:nth-child(11) {
+  animation-delay: 0.55s;
+}
+
+.games-grid .game:nth-child(12) {
+  animation-delay: 0.6s;
+}
+
+.games-grid .game:nth-child(13) {
+  animation-delay: 0.65s;
+}
+
+.games-grid .game:nth-child(14) {
+  animation-delay: 0.7s;
+}
+
+.games-grid .game:nth-child(15) {
+  animation-delay: 0.75s;
+}
+
+.games-grid .game:nth-child(16) {
+  animation-delay: 0.8s;
+}
+
+.games-grid .game:nth-child(17) {
+  animation-delay: 0.85s;
+}
+
+.games-grid .game:nth-child(18) {
+  animation-delay: 0.9s;
+}
+
+.games-grid .game:nth-child(19) {
+  animation-delay: 0.95s;
+}
+
+.games-grid .game:nth-child(20) {
+  animation-delay: 1s;
+}
+
+.games-grid .game:nth-child(21) {
+  animation-delay: 1.05s;
+}
+
+.games-grid .game:nth-child(22) {
+  animation-delay: 1.1s;
+}
+
+.games-grid .game:nth-child(23) {
+  animation-delay: 1.15s;
+}
+
+.games-grid .game:nth-child(24) {
+  animation-delay: 1.2s;
+}
+
+.games-grid .game:nth-child(25) {
+  animation-delay: 1.25s;
+}
+
+.games-grid .game:nth-child(26) {
+  animation-delay: 1.3s;
+}
+
+.games-grid .game:nth-child(27) {
+  animation-delay: 1.35s;
+}
+
+.games-grid .game:nth-child(28) {
+  animation-delay: 1.4s;
+}
+
+.games-grid .game:nth-child(29) {
+  animation-delay: 1.45s;
+}
+
+.games-grid .game:nth-child(30) {
+  animation-delay: 1.5s;
+}
+
+.games-grid .game:nth-child(31) {
+  animation-delay: 1.55s;
+}
+
+.games-grid .game:nth-child(32) {
+  animation-delay: 1.6s;
+}
+
+.games-grid .game:nth-child(33) {
+  animation-delay: 1.65s;
+}
+
+.games-grid .game:nth-child(34) {
+  animation-delay: 1.7s;
+}
+
+.games-grid .game:nth-child(35) {
+  animation-delay: 1.75s;
+}
+
+.games-grid .game:nth-child(36) {
+  animation-delay: 1.8s;
+}
+
+.games-grid .game:nth-child(37) {
+  animation-delay: 1.85s;
+}
+
+.games-grid .game:nth-child(38) {
+  animation-delay: 1.9s;
+}
+
+.games-grid .game:nth-child(39) {
+  animation-delay: 1.95s;
+}
+
+.games-grid .game:nth-child(40) {
+  animation-delay: 2s;
+}
+
+.games-grid .game:nth-child(41) {
+  animation-delay: 2.05s;
+}
+
+.games-grid .game:nth-child(42) {
+  animation-delay: 2.1s;
+}
+
+.games-grid .game:nth-child(43) {
+  animation-delay: 2.15s;
+}
+
+.games-grid .game:nth-child(44) {
+  animation-delay: 2.2s;
+}
+
+.games-grid .game:nth-child(45) {
+  animation-delay: 2.25s;
+}
+
+.games-grid .game:nth-child(46) {
+  animation-delay: 2.3s;
+}
+
+.games-grid .game:nth-child(47) {
+  animation-delay: 2.35s;
+}
+
+.games-grid .game:nth-child(48) {
+  animation-delay: 2.4s;
+}
+
+.games-grid .game:nth-child(49) {
+  animation-delay: 2.45s;
+}
+
+.games-grid .game:nth-child(50) {
+  animation-delay: 2.5s;
+}
+
+.games-grid .game:nth-child(51) {
+  animation-delay: 2.55s;
+}
+
+.games-grid .game:nth-child(52) {
+  animation-delay: 2.6s;
+}
+
+.games-grid .game:nth-child(53) {
+  animation-delay: 2.65s;
+}
+
+.games-grid .game:nth-child(54) {
+  animation-delay: 2.7s;
+}
+
+.games-grid .game:nth-child(55) {
+  animation-delay: 2.75s;
+}
+
+.games-grid .game:nth-child(56) {
+  animation-delay: 2.8s;
+}
+
+.games-grid .game:nth-child(57) {
+  animation-delay: 2.85s;
+}
+
+.games-grid .game:nth-child(58) {
+  animation-delay: 2.9s;
+}
+
+.games-grid .game:nth-child(59) {
+  animation-delay: 2.95s;
+}
+
+.games-grid .game:nth-child(60) {
+  animation-delay: 3s;
+}
+
+.games-grid .game:nth-child(61) {
+  animation-delay: 3.05s;
+}
+
+/* ...continue as needed for more cards */
